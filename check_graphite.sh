@@ -142,12 +142,12 @@ esac
 if (( $(bc <<< "${MY_VALUE} >= ${CRITICAL}") > 0 ))
 then
     echo "CRITICAL|${TAG}=${MY_VALUE}"
-    exit 1
+    exit 2
 else
     if (( $(bc <<< "${MY_VALUE} >= ${WARNING}") > 0 ))
     then
         echo "WARNING|${TAG}=${MY_VALUE}"
-        exit 2
+        exit 1
     fi
     echo "OK|${TAG}=${MY_VALUE}"
     exit 0

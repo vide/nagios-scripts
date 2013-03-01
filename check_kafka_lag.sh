@@ -59,12 +59,12 @@ LAG=$(/opt/kafka/kafka_install/bin/kafka-run-class.sh kafka.tools.ConsumerOffset
 if (( LAG >= ${CRITICAL} ))
 then
     echo "CRITICAL Kafka lag ${LAG}MB"
-    exit 1
+    exit 2
 else
     if (( LAG >= ${WARNING} ))
     then
         echo "WARNING Kafka lag ${LAG}MB"
-        exit 2
+        exit 1
     fi
     echo "OK Kafka lag ${LAG}MB"
     exit 0
