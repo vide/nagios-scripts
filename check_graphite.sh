@@ -1,21 +1,5 @@
 #!/bin/bash
 
-# I took this function from
-# https://github.com/dominictarr/JSON.sh
-# while I was looking for a way to fix some strange char problems in the
-# Graphite's CSV output
-# Thanks Dominic
-function tokenize () {
-  local ESCAPE='(\\[^u[:cntrl:]]|\\u[0-9a-fA-F]{4})'
-  local CHAR='[^[:cntrl:]"\\]'
-  local STRING="\"$CHAR*($ESCAPE$CHAR*)*\""
-  local NUMBER='-?(0|[1-9][0-9]*)([.][0-9]*)?([eE][+-]?[0-9]*)?'
-  local KEYWORD='null|false|true'
-  local SPACE='[[:space:]]+'
-  egrep -ao "$STRING|$NUMBER|$KEYWORD|$SPACE|." --color=never |
-    egrep -v "^$SPACE$"  # eat whitespace
-}
-
 function printArray { 
     echo ${VALUES[*]}; 
 }
@@ -42,13 +26,15 @@ function lastValue {
     echo "${VALUES[${#VALUES[*]}-1]}"
 }
 
+# we require JSON.sh 
 function parseGraphite {
     i=0
     while read LINE
     do 
-        VALUE=$(echo "${LINE}"|awk -F, '{print $3 }'|tokenize)
-        [ -n "${VALUE}" ] && { VALUES[${i}]="${VALUE}"; (( i++ )); }
-    done < <(curl "${G_URL}" 2>/dev/null)
+        VALUE=$(echo "${LINE}"|awk -F' ' '{print $2}')
+        [ "${VALUE}" != "null" ] && { VALUES[${i}]="${VALUE}"; (( i++ )); }
+    done < <(curl "${G_URL}" 2>/dev/null|${JSON_SH}|egrep '\[[[:digit:]],"datapoints",[[:digit:]]{1,},0\]')   
+    
 }
 
 function printHelp() {
@@ -72,6 +58,7 @@ exit 2
 
 # main starts here
 declare -a VALUES
+JSON_SH="./JSON.sh"
 STIME="now - 15 min"
 ETIME="now"
 CMODE="last"
@@ -94,7 +81,7 @@ done
 
 FROM=$(date -d "${STIME}" "+%H%%3A%M_%Y%m%d") || printHelp "Invalid start time"
 UNTIL=$(date -d "${ETIME}" "+%H%%3A%M_%Y%m%d") || printHelp "Invalid end time"
-ADDITIONAL_PARAMS="format=csv&from=${FROM}&until=${UNTIL}"
+ADDITIONAL_PARAMS="format=json&from=${FROM}&until=${UNTIL}"
 
 
 if [ -z "${WARNING}" ];
@@ -128,7 +115,7 @@ case "${CMODE}" in
     avg)
         MY_VALUE=$(avgValue)
         ;;
-    max)
+    max)        
         MY_VALUE=$(maxValue)
         ;;
     min)
@@ -142,7 +129,7 @@ esac
 if (( $(bc <<< "${MY_VALUE} >= ${CRITICAL}") > 0 ))
 then
     echo "CRITICAL|${TAG}=${MY_VALUE}"
-    exit 2
+    exit 2n
 else
     if (( $(bc <<< "${MY_VALUE} >= ${WARNING}") > 0 ))
     then

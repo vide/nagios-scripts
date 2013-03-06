@@ -18,6 +18,14 @@ Moreover, both of them are not flexible enough, cause I need dates range
 support and different calculation modes (they just return the last valid 
 value). So here it is this simple bash script to check if a Graphite series
 is within two given thresholds.
-
 Check the program help for the options available
+
+This script has a dependency on JSON.sh, you can find this great bash script 
+here: https://github.com/dominictarr/JSON.sh
+
+### check_ndb 
+
+Previously in a separate repo, it is a scripts to monitor MySQL NDB Cluster from 
+Nagios. It connects to the NDB Manager and check the memory used by the cluster
+for the specified node
 
