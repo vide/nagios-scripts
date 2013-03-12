@@ -39,17 +39,21 @@ function parseGraphite {
 
 function printHelp() {
 
-cat >&2 <<EOF
+cat >&2 <<EOF   
 $@
 
-    --warning|-w                        Warning threshold (in MBs)
-    --critical|-c                       Critical threshold (in MBs)
+check_graphite.sh
+
+USAGE:
+
+    --warning|-w                        Warning threshold
+    --critical|-c                       Critical threshold
     --graphite|-g                       Graphite server base URL (eg. http://graphite.local/)
     --metric|-m                         Set the Graphite metric name to check
     --tag|-t [tag name]                 Set an optional tag value for the metric. Used in the nagios output (default: "Value")
     --start-time|-s                     Set the series start time (default: now minus 15 min). Accepts "GNU date" format
     --end-time|-e                       Set the series end time (default: now). Accepts "GNU date" format
-    --calc-mode|-c [last|avg|max|min]   Specify how to calculate the number that will be checked against thresholds (default: last)
+    --calc-mode|-a [last|avg|max|min]   Specify how to calculate the number that will be checked against thresholds (default: last)
 EOF
 
 exit 2
@@ -58,7 +62,7 @@ exit 2
 
 # main starts here
 declare -a VALUES
-JSON_SH="./JSON.sh"
+JSON_SH="$(dirname $0)/JSON.sh"
 STIME="now - 15 min"
 ETIME="now"
 CMODE="last"
@@ -67,14 +71,14 @@ TAG="Value"
 while [ $# -gt 0 ]  
 do
     case "$1" in
-        --warning|-w)     WARNING="$2";       shift 2;;
-        --critical|-c)    CRITICAL="$2";      shift 2;;
-        --graphite|-g)    BASE_GRAPHITE="$2"; shift 2;;
-        --metric|-m)      METRIC_NAME="$2";   shift 2;;
-        --tag|-t)         TAG="$2";           shift 2;;
-        --start-time|-s)  STIME="$2";         shift 2;;
-        --end-time|-e)    ETIME="$2";         shift 2;;
-        --calc-mode|-a)   CMODE="$2";         shift 2;;
+        --warning|-w)     WARNING="$2";       shift 1; shift 1;;
+        --critical|-c)    CRITICAL="$2";      shift 1; shift 1;;
+        --graphite|-g)    BASE_GRAPHITE="$2"; shift 1; shift 1;;
+        --metric|-m)      METRIC_NAME="$2";   shift 1; shift 1;;
+        --tag|-t)         TAG="$2";           shift 1; shift 1;;
+        --start-time|-s)  STIME="$2";         shift 1; shift 1;;
+        --end-time|-e)    ETIME="$2";         shift 1; shift 1;;
+        --calc-mode|-a)   CMODE="$2";         shift 1; shift 1;;
         *)                printHelp           "Missing parameter" ;;
     esac        
 done
@@ -126,10 +130,12 @@ case "${CMODE}" in
         ;;
 esac
 
+[ -z ${MY_VALUE} ] && { echo "ERROR retrieving values"; exit 2; }
+
 if (( $(bc <<< "${MY_VALUE} >= ${CRITICAL}") > 0 ))
 then
     echo "CRITICAL|${TAG}=${MY_VALUE}"
-    exit 2n
+    exit 2
 else
     if (( $(bc <<< "${MY_VALUE} >= ${WARNING}") > 0 ))
     then
@@ -138,4 +144,7 @@ else
     fi
     echo "OK|${TAG}=${MY_VALUE}"
     exit 0
+
 fi
+
+exit 2
