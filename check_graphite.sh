@@ -87,26 +87,11 @@ FROM=$(date -d "${STIME}" "+%H%%3A%M_%Y%m%d") || printHelp "Invalid start time"
 UNTIL=$(date -d "${ETIME}" "+%H%%3A%M_%Y%m%d") || printHelp "Invalid end time"
 ADDITIONAL_PARAMS="format=json&from=${FROM}&until=${UNTIL}"
 
-
-if [ -z "${WARNING}" ];
-then
-    printHelp "Please specify a warning threshold"
-fi
-
-if [ -z "${CRITICAL}" ];
-then
-    printHelp "Please specify a critical threshold"
-fi
-
-if [ -z "${BASE_GRAPHITE}" ];
-then
-    printHelp "Please specify a Graphite server base URL (eg. http://graphite.local/)"
-fi
-
-if [ -z "${METRIC_NAME}" ];
-then
-    printHelp "Please specify a Graphite metric name to check"
-fi
+[ -f "${JSON_SH}" ]       && printHelp "Missing JSON.sh"
+[ -z "${WARNING}" ]       && printHelp "Please specify a warning threshold"
+[ -z "${CRITICAL}" ]      && printHelp "Please specify a critical threshold"
+[ -z "${BASE_GRAPHITE}" ] && printHelp "Please specify a Graphite server base URL (eg. http://graphite.local/)"
+[ -z "${METRIC_NAME}" ]   && printHelp "Please specify a Graphite metric name to check"
 
 G_URL="${BASE_GRAPHITE}/render/?target=${METRIC_NAME}&${ADDITIONAL_PARAMS}"
 

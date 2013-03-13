@@ -23,6 +23,40 @@ Check the program help for the options available
 This script has a dependency on JSON.sh, you can find this great bash script 
 here: https://github.com/dominictarr/JSON.sh
 
+Nagios integration examples
+
+checkcommands.cfg:
+
+define command {
+    command_name    check_graphite
+    command_line    $USER1$/check_graphite.sh -g 'http://graphite.server/' -w $ARG1$ -c $ARG2$ -m "$ARG3$" -t $ARG4$ -s "$ARG5$" -e "$ARG6$" -a $ARG7$
+}
+
+!!! Pay attention to the double quotes !!!
+
+Service definition
+
+define service {
+        check_command                  check_graphite!10!30!integral\(path.to.your.metric.\)!My_tag!30 min ago!now!avg
+        host_name                      my.host.tld 
+        use                            generic-service
+        service_description            My description
+        action_url                     /pnp/index.php?host=$HOSTNAME$&srv=$SERVICEDESC$
+}
+
+Optionally if you are using Puppet, this is the service definition to generate the above example
+
+    nagios_service { "graphite check 1":
+            tag                 => "nagios-service",
+            host_name           => $::hostname,
+            service_description => "My description"
+            use                 => "generic-service",
+            check_command       => "check_graphite!10!30!integral\(path.to.your.metric.\)!My_tag!30 min ago!now!avg",
+            action_url          => "/pnp/index.php?host=\$HOSTNAME\$&srv=\$SERVICEDESC\$"
+    }
+
+!!! Remember to escape the parenthesis !!!
+
 ### check_ndb 
 
 Previously in a separate repo, it is a scripts to monitor MySQL NDB Cluster from 
