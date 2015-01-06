@@ -54,7 +54,7 @@ then
     printHelp "Please specify a Kafka topic"
 fi
 
-LAG=$(/opt/kafka/kafka_install/bin/kafka-run-class.sh kafka.tools.ConsumerOffsetChecker --group "${GROUP}" --zkconnect "${ZK}" --topic "${TOPIC}" |grep "Consumer lag" |awk -F= '{SUM+=$2} END{printf "%d",SUM/1024/1024}')
+LAG=$(/opt/kafka/kafka_install/bin/kafka-run-class.sh kafka.tools.ConsumerOffsetChecker --group "${GROUP}" --zkconnect "${ZK}" --topic "${TOPIC}" |grep $TOPIC |awk -F' ' '{ SUM += $6 } END { printf "%d", SUM/1024/1024 }')
 
 if (( LAG >= ${CRITICAL} ))
 then
