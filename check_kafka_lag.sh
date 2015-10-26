@@ -26,7 +26,7 @@ do
         --zk-connect|-z)  ZK="$2";    shift 2;;
         --group|-g)       GROUP="$2";    shift 2;;
         --topic|-t)       TOPIC="$2";     shift 2;;
-        --kafka-home|-k)  KAFKA_HOME="$2";    shift2;;
+        --kafka-home|-k)  KAFKA_HOME="$2";    shift 2;;
         *)                printHelp "Missing parameter" ;;
     esac        
 done
