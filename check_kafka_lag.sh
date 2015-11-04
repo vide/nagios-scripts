@@ -9,7 +9,8 @@ $@
     --critical|-c       Critical threshold (in MBs)
     --zk-connect|-z     Zookeper connection string
     --group|-g          Set Kafka group to monitor
-    --topic|-t          Set Kafka topic to monitor    
+    --topic|-t          Set Kafka topic to monitor
+    --kafka-home|-k     Set Kafka home directory    
 EOF
 
 exit 2
@@ -25,6 +26,7 @@ do
         --zk-connect|-z)  ZK="$2";    shift 2;;
         --group|-g)       GROUP="$2";    shift 2;;
         --topic|-t)       TOPIC="$2";     shift 2;;
+        --kafka-home|-k)  KAFKA_HOME="$2";    shift 2;;
         *)                printHelp "Missing parameter" ;;
     esac        
 done
@@ -54,7 +56,13 @@ then
     printHelp "Please specify a Kafka topic"
 fi
 
-LAG=$(/opt/kafka/kafka_install/bin/kafka-run-class.sh kafka.tools.ConsumerOffsetChecker --group "${GROUP}" --zkconnect "${ZK}" --topic "${TOPIC}" |grep $TOPIC |awk -F' ' '{ SUM += $6 } END { printf "%d", SUM/1024/1024 }')
+if [ -z "${KAFKA_HOME}" ];
+then
+    printHelp "Please specify the Kafka Home folder"
+fi
+
+
+LAG=$(${KAFKA_HOME}/bin/kafka-run-class.sh kafka.tools.ConsumerOffsetChecker --group "${GROUP}" --zookeeper "${ZK}" --topic "${TOPIC}" |grep $TOPIC |awk -F' ' '{ SUM += $6 } END { printf "%d", SUM/1024/1024 }')
 
 if (( LAG >= ${CRITICAL} ))
 then
