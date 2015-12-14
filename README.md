@@ -1,11 +1,18 @@
 nagios-scripts
 ==============
 
-Collection of various Nagios scripts
+Collection of various Nagios scripts and plugins
+
+### check_wp.sh
+
+Frontend to wp-cli (http://wp-cli.org) to check through Nagios if your wordpress 
+installation (core, plugins) is updated to the latest version, so you can upgrade
+as soos as a new fix is available. 
+It supports multisite installs as well and obviously relies on PHP.
 
 ### check_kafka_lag.sh
 
-Used to check the lag between to Kafka instnaces, one used as a "producer" and
+Used to check the lag between to Kafka instances, one used as a "producer" and
 the other as a "consumer". Don't know if it's really useful outside my company 
 but anyway, here it is
 
